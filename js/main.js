@@ -218,44 +218,52 @@ function (Heatmap, _, $) {
             var meth = crossfilter(data);
             callback(meth);
         }).fail(function () {
+            // TODO: Something more useful.
             console.log("Uhoh", arguments);
         });
     }
     loadMethData(function (cf) {
-        var wga   = cf.dimension(function (d) { return d.WGA; }),
-            wgas  = wga.group(byBin);
+        var all   = cf.groupAll(),
+            wga   = cf.dimension(function (d) { return d.WGA; }),
+            meth  = cf.dimension(function (d) { return d.CHG; }),
+            wgas  = wga.group(byBin).reduceCount(),
+            meths = meth.group(byBin).reduceCount(),
+            filtered = cf.dimension(function (d) { return d.WGA; }),
+            // Duplicated to allow all filters to be applied.
+            measures = filtered.group(byBin).reduceCount();
+            
+        var maxMeth = log10(wgas.top(1)[0].value);
+        var binLabels = _.pluck(wgas.all(), "key");
+        $("#copy #total").text(formatNumber(cf.size()));
+                
+        function transformMeths() {
+            var values = [];
+
+            var minM = 0;
+            meths.all().forEach(function (m, i) {
+                measures.all().forEach(function (v, j) {
+                    values.push([j, i, log10(v.value)]);
+                });
+                minM = m.key;
+            });
+            return values;
+        }
         
-        $("#copy").append("Total <b>" + cf.size() + "</b> genes");
-        
-        var values = [];
-        
-        var minWGA = 0;
-        wgas.all().forEach(function (w, i) {
-            wga.filter([minWGA, w.key]);
-            var meth  = cf.dimension(function (d) { return d.CHG; }),
-                meths = meth.group(byBin).reduceCount();
-/*
-            meths.reduce(
-                function add(p, v) { return p + v.WGA; },
-                function rem(p, v) { return p - v.WGA; },
-                function initial() { return 0; }
-            );
-*/
-            meths.all().forEach(function (v, j) {
-                values.push([i, j, log10(v.value)]);
-            })
-            minWGA = w.key;
-        });
-        
-        var charts, chart;
+        var charts, chart, heatmap;
         function renderAll() {
-          chart.each(render);
-          // list.each(render);
-          d3.select("#active").text(formatNumber(cf.groupAll().value()));
+            chart.each(render);
+            var values = transformMeths();
+            $("#copy #selected").text(formatNumber(all.value()));
+            heatmap.setData({
+                rows:    binLabels,
+                columns: binLabels,
+                matrix:  values,
+                maxScore: maxMeth 
+            });
+            heatmap.render();
+            d3.select("#active").text(formatNumber(cf.groupAll().value()));
         }
-        function render(method) {
-          d3.select(this).call(method);
-        }
+        function render(method) { d3.select(this).call(method); }
 
         charts = [
             barChart()
@@ -272,23 +280,15 @@ function (Heatmap, _, $) {
                   chart.on("brush", renderAll).on("brushend", renderAll);
               });
 
-        var heatmap = new Heatmap({
+        heatmap = new Heatmap({
             element: "#datavis",
             colorscheme: "Spectral",
-            borderWidth: 1
+            borderWidth: 0
         });
-        heatmap.setData({
-            rows:    _.pluck(wgas.all(), "key"),
-            columns: _.pluck(wgas.all(), "key"),
-            matrix:  values,
-            maxScore: _.max(_.map(values, function (t) { return t[2] }))
-        });
-        heatmap.render();
         charts[0].filter(null);
         renderAll();
 
         window.filter = function (filters) {
-            console.log("Filter!", filters);
             filters.forEach(function (d, i) { charts[i].filter(d); });
             renderAll();
         };

@@ -76,3 +76,6 @@ h1, h2 {
   fill: #eee;
   stroke: #666;
 }
+#copy span {
+    font-weight: bold;
+}
