@@ -2,18 +2,26 @@
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>Sorghum Gene Methylation</title>
-    <link rel="stylesheet" href="css/iris.css" type="text/css" media="screen" title="no title" charset="utf-8">
-    <script src="js/crossfilter.js" type="text/javascript" charset="utf-8"></script>
-    <script src="js/iris.js" type="text/javascript" charset="utf-8"></script>
-    <script src="js/main.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="css/main.css" type="text/css" charset="utf-8">
+    <link rel="stylesheet" href="css/iris.css" type="text/css" charset="utf-8">
     <style type="text/css" media="screen">
         #datavis { width: 500px; height: 500px; }
     </style>
 </head>
 <body>
     <h1>Sorghum Gene Methylation</h1>
-    <div id="copy"></div>
+    <div class="copy" id="status">
+        <span id="selected">--</span> of <span id="total">--</span> genes selected.
+    </div>
+    <div class="chart">
+      <div class="title">Conservation</div>
+    </div>
     <div class="container">
         <div id="datavis"></div>
     </div>
+
+    <script src="js/crossfilter.js" type="text/javascript" charset="utf-8">
+    </script>
+    <script src="js/iris.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/main.js" type="text/javascript" charset="utf-8"></script>
 </body>
