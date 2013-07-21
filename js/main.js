@@ -1,5 +1,5 @@
-// var input = "http://brie.cshl.edu/~olson/refData.json";
-var input = "./refData.json";
+var input = "http://brie.cshl.edu/~olson/refData.json";
+// var input = "./refData.json";
 var formatNumber = d3.format(",d");
 function barChart() {
     if (!barChart.id) barChart.id = 0;
