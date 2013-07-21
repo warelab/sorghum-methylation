@@ -94,12 +94,13 @@ function barChart() {
             var path = [],
                 i = -1,
                 n = groups.length,
-                d;
+                d,
+                barWidth = 13;
             while (++i < n) {
                 d = groups[i];
                 path.push(
                     "M", x(d.key), ",",
-                    height, "V", y(d.value), "h9V", height
+                    height, "V", y(d.value), "h", barWidth, "V", height
                 );
             }
             return path.join("");
@@ -244,7 +245,7 @@ function (Heatmap, _, $) {
 
         var maxMeth = log10(Dims.wga.group.top(1)[0].value);
         var binLabels = _.pluck(Dims.wga.group.all(), "key");
-        $("#copy #total").text(formatNumber(cf.size()));
+        $("#status #total").text(formatNumber(cf.size()));
 
         function binValues(type1, type2) {
             var dim1 = Dims[type1].dim,
@@ -271,8 +272,8 @@ function (Heatmap, _, $) {
         
         function renderCharts() {
             chart.each(render);
-            var values = binValues("wga", "meth");
-            $("#copy #selected").text(formatNumber(all.value()));
+            var values = binValues("meth", "wga");
+            $("#status #selected").text(formatNumber(all.value()));
             heatmap.setData({
                 rows:     binLabels,
                 columns:  binLabels,
@@ -290,7 +291,7 @@ function (Heatmap, _, $) {
                 .group(wgaPair.group)
                 .x(d3.scale.linear()
                     .domain([0, 1])
-                    .rangeRound([80, 400])
+                    .rangeRound([60, 500])
                 ),
         ];
         chart = d3.selectAll(".chart")

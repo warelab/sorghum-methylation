@@ -40,7 +40,6 @@ h1, h2 {
 .chart {
   display: inline-block;
   height: 151px;
-  margin-bottom: 20px;
 }
 
 .reset {
@@ -76,6 +75,13 @@ h1, h2 {
   fill: #eee;
   stroke: #666;
 }
-#copy span {
+.copy span {
     font-weight: bold;
+}
+#status {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+.chart .title {
+    font-size: 10pt;
 }
