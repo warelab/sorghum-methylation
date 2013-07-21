@@ -223,62 +223,82 @@ function (Heatmap, _, $) {
         });
     }
     loadMethData(function (cf) {
-        var all   = cf.groupAll(),
-            wga   = cf.dimension(function (d) { return d.WGA; }),
-            meth  = cf.dimension(function (d) { return d.CHG; }),
-            wgas  = wga.group(byBin).reduceCount(),
-            meths = meth.group(byBin).reduceCount(),
-            filtered = cf.dimension(function (d) { return d.WGA; }),
-            // Duplicated to allow all filters to be applied.
-            measures = filtered.group(byBin).reduceCount();
-            
-        var maxMeth = log10(wgas.top(1)[0].value);
-        var binLabels = _.pluck(wgas.all(), "key");
-        $("#copy #total").text(formatNumber(cf.size()));
-                
-        function transformMeths() {
-            var values = [];
+        var all   = cf.groupAll();
+        var Dims = {
+            wga:  { key: "WGA" },
+            meth: { key: "CHG" }
+        };
+        function dimGroupPair(key) {
+            var dim = cf.dimension(function (d) { return d[key]; });
+            return {
+                dim: dim,
+                group: dim.group(byBin).reduceCount()
+            };
+        }
+        for (var type in Dims) {
+            var column = Dims[type];
+            var pair = dimGroupPair(column.key);
+            column.dim = pair.dim;
+            column.group = pair.group;
+        }
 
-            var minM = 0;
-            meths.all().forEach(function (m, i) {
+        var maxMeth = log10(Dims.wga.group.top(1)[0].value);
+        var binLabels = _.pluck(Dims.wga.group.all(), "key");
+        $("#copy #total").text(formatNumber(cf.size()));
+
+        function binValues(type1, type2) {
+            var dim1 = Dims[type1].dim,
+                dim2 = Dims[type2].dim,
+                grp1 = Dims[type1].group,
+                grp2 = Dims[type2].group,
+                filtered =
+                    cf.dimension(function (d) { return d[Dims[type2].key]; }),
+                measures = filtered.group(byBin).reduceCount(),
+                values = [],
+                binStart = 0;
+            grp1.all().forEach(function (m, i) {
+                dim1.filter([binStart, m.key]);
                 measures.all().forEach(function (v, j) {
                     values.push([j, i, log10(v.value)]);
                 });
-                minM = m.key;
+                binStart = m.key;
             });
+            dim1.filterAll();
             return values;
         }
-        
+
         var charts, chart, heatmap;
-        function renderAll() {
+        
+        function renderCharts() {
             chart.each(render);
-            var values = transformMeths();
+            var values = binValues("wga", "meth");
             $("#copy #selected").text(formatNumber(all.value()));
             heatmap.setData({
-                rows:    binLabels,
-                columns: binLabels,
-                matrix:  values,
+                rows:     binLabels,
+                columns:  binLabels,
+                matrix:   values,
                 maxScore: maxMeth 
             });
             heatmap.render();
-            d3.select("#active").text(formatNumber(cf.groupAll().value()));
         }
         function render(method) { d3.select(this).call(method); }
 
+        var wgaPair = dimGroupPair("WGA");
         charts = [
             barChart()
-                .dimension(wga)
-                .group(wgas)
+                .dimension(wgaPair.dim)
+                .group(wgaPair.group)
                 .x(d3.scale.linear()
                     .domain([0, 1])
                     .rangeRound([80, 400])
                 ),
         ];
         chart = d3.selectAll(".chart")
-              .data(charts)
-              .each(function (chart) {
-                  chart.on("brush", renderAll).on("brushend", renderAll);
-              });
+            .data(charts)
+            .each(function (chart) {
+                chart.on("brush", renderCharts)
+                    .on("brushend", renderCharts);
+            });
 
         heatmap = new Heatmap({
             element: "#datavis",
@@ -286,17 +306,16 @@ function (Heatmap, _, $) {
             borderWidth: 0
         });
         charts[0].filter(null);
-        renderAll();
+        renderCharts();
 
         window.filter = function (filters) {
             filters.forEach(function (d, i) { charts[i].filter(d); });
-            renderAll();
+            renderCharts();
         };
         
         window.reset = function(i) {
             charts[i].filter(null);
-            renderAll();
+            renderCharts();
         };
-
     });
 });
