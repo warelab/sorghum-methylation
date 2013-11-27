@@ -1,0 +1,23 @@
+{
+  "name": "sorghum-methylation",
+  "version": "0.0.2",
+  "description": "Methylation patterns and gene conservation within sorghum.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gingi/sorghum-methylation.git"
+  },
+  "author": "Shiran Pasternak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gingi/sorghum-methylation/issues"
+  },
+  "dependencies": {
+    "iris"        : "gingi/iris-kit#master",
+    "crossfilter" : "square/crossfilter#master",
+    "d3"          : "mbostock/d3#master"
+  }
+}

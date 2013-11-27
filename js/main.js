@@ -1,5 +1,5 @@
-var input = "http://brie.cshl.edu/~olson/refData.json";
-// var input = "./refData.json";
+// var input = "http://brie.cshl.edu/~olson/refData.json";
+var input = "./refData.json";
 var formatNumber = d3.format(",d");
 iris.require(["renderers/heatmap", "underscore", "jquery", "js/brushchart"],
 function (Heatmap, _, $, BrushChart) {
