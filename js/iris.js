@@ -1,1 +1,1 @@
-../iris/dist/iris.js
+../node_modules/iris-kit/iris.js

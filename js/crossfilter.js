@@ -1,1 +1,1 @@
-../crossfilter/crossfilter.js
+../node_modules/crossfilter/crossfilter.js
