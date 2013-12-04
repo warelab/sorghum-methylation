@@ -1,6 +1,0 @@
-[submodule "iris"]
-	path = iris
-	url = https://github.com/gingi/iris
-[submodule "crossfilter"]
-	path = crossfilter
-	url = https://github.com/square/crossfilter
