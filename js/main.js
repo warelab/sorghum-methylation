@@ -98,12 +98,6 @@ Iris(function () {
                     group:     chgPair.group
                 })
             ];
-            // chart = d3.selectAll(".chart")
-            //     .data(histograms)
-            //     .each(function (chart) {
-            //         chart.on("brush", renderCharts)
-            //             .on("brushend", renderCharts);
-            //     });
             histograms[0].filter(null);
             renderCharts();
 
