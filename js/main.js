@@ -70,7 +70,7 @@ Iris(function () {
             var histograms, chart;
         
             function renderCharts() {
-                // chart.each(render);
+                _.each(histograms, function (h) { h.render(); });
                 var values = binValues("meth", "wga");
                 $("#status #selected").text(formatNumber(all.value()));
             }
@@ -80,12 +80,22 @@ Iris(function () {
                 class: "chart",
                 id: "chart1"
             }).append($("<div>", { class: "title" }).text("Conservation")));
+            $("#histograms").append($("<div>", {
+                class: "chart",
+                id: "chart2"
+            }).append($("<div>", { class: "title" }).text("CHG")));
             var wgaPair = dimGroupPair("WGA");
+            var chgPair = dimGroupPair("CHG");
             histograms = [
                 new BrushChart({
                     element: "#chart1",
                     dimension: wgaPair.dim,
                     group: wgaPair.group
+                }),
+                new BrushChart({
+                    element: "#chart2",
+                    dimension: chgPair.dim,
+                    group:     chgPair.group
                 })
             ];
             // chart = d3.selectAll(".chart")

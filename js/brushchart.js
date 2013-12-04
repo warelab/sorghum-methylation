@@ -1,26 +1,27 @@
 Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
-    var defaults = {
-        margin: { top: 10, right: 10, bottom: 20, left: 10 },
-        yPixels: 80
-    };
     var BrushChart = BarChart.extend({
+        defaults: {
+            margin: { top: 10, right: 10, bottom: 20, left: 10 },
+            yPixels: 80
+        },
         initialize: function (options) {
-            this.axis       = d3.svg.axis().orient("bottom");
-            this.x = d3.scale.linear().domain([0, 1]).rangeRound([60, 500]);
-            this.y = d3.scale.pow().exponent(.5).range([options.yPixels, 0]);
-            this.id         = BrushChart.id++;
-            this.brush      = d3.svg.brush();
-            this.brushDirty = null;
-            this.dimension  = options.dimension;
-            this.group      = options.group;
-            this.round      = null;
-            this.axis.scale(this.x);
-            this.brush.x(this.x);
-            this.chart = function (div) {
-                var width  = x.range()[1],
-                    height = y.range()[0];
+            var self = this;
+            self.axis       = d3.svg.axis().orient("bottom");
+            self.x = d3.scale.linear().domain([0, 1]).rangeRound([60, 500]);
+            self.y = d3.scale.pow().exponent(.5).range([options.yPixels, 0]);
+            self.id         = BrushChart.id++;
+            self.brush      = d3.svg.brush();
+            self.brushDirty = null;
+            self.dimension  = options.dimension;
+            self.group      = options.group;
+            self.round      = null;
+            self.axis.scale(self.x);
+            self.brush.x(self.x);
+            self.chart = function (div) {
+                var width  = self.x.range()[1],
+                    height = self.y.range()[0];
 
-                y.domain([0, group.top(1)[0].value]);
+                self.y.domain([0, self.group.top(1)[0].value]);
 
                 div.each(function () {
                     var div = d3.select(this),
@@ -30,23 +31,25 @@ Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
                     if (g.empty()) {
                         div.select(".title")
                             .append("a")
-                            .attr("href", "javascript:reset(" + id + ")")
+                            .attr("href", "javascript:reset(" + self.id + ")")
                             .attr("class", "reset")
                             .text("reset")
                             .style("display", "none");
 
                         g = div.append("svg")
                             .attr("width",
-                                width + options.margin.left + options.margin.right)
+                                width + options.margin.left +
+                                        options.margin.right)
                             .attr("height",
-                                height + options.margin.top + options.margin.bottom)
+                                height + options.margin.top +
+                                         options.margin.bottom)
                             .append("g")
                             .attr("transform",
                                 "translate(" + options.margin.left + "," +
                                      options.margin.top + ")");
 
                         g.append("clipPath")
-                            .attr("id", "clip-" + id)
+                            .attr("id", "clip-" + self.id)
                             .append("rect")
                             .attr("width", width)
                             .attr("height", height);
@@ -56,38 +59,42 @@ Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
                             .enter()
                             .append("path")
                             .attr("class", function (d) { return d + " bar";})
-                            .datum(group.all());
+                            .datum(self.group.all());
 
                         g.selectAll(".foreground.bar")
-                            .attr("clip-path", "url(#clip-" + id + ")");
+                            .attr("clip-path", "url(#clip-" + self.id + ")");
 
                         g.append("g")
                             .attr("class", "axis")
                             .attr("transform", "translate(0," + height + ")")
-                            .call(axis);
+                            .call(self.axis);
 
                         // Initialize the brush component with pretty resize handles.
-                        var gBrush = g.append("g").attr("class", "brush").call(brush);
+                        var gBrush = g.append("g").attr("class", "brush")
+                            .call(self.brush);
                         gBrush.selectAll("rect").attr("height", height);
                         gBrush.selectAll(".resize").append("path")
                             .attr("d", resizePath);
                     }
 
                     // Only redraw the brush if set externally.
-                    if (brushDirty) {
-                        brushDirty = false;
-                        g.selectAll(".brush").call(brush);
+                    if (self.brushDirty) {
+                        self.brushDirty = false;
+                        g.selectAll(".brush").call(self.brush);
                         div.select(".title a")
-                            .style("display", brush.empty() ? "none" : null);
-                        if (brush.empty()) {
-                            g.selectAll("#clip-" + id + " rect")
+                            .style("display",
+                                self.brush.empty() ? "none" : null);
+                        if (self.brush.empty()) {
+                            g.selectAll("#clip-" + self.id + " rect")
                                 .attr("x", 0)
                                 .attr("width", width);
                         } else {
-                            var extent = brush.extent();
-                            g.selectAll("#clip-" + id + " rect")
-                                .attr("x", x(extent[0]))
-                                .attr("width", x(extent[1]) - x(extent[0]));
+                            var extent = self.brush.extent();
+                            g.selectAll("#clip-" + self.id + " rect")
+                                .attr("x", self.x(extent[0]))
+                                .attr("width",
+                                    self.x(extent[1]) - self.x(extent[0])
+                                );
                         }
                     }
 
@@ -103,8 +110,8 @@ Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
                     while (++i < n) {
                         d = groups[i];
                         path.push(
-                            "M", x(d.key), ",",
-                            height, "V", y(d.value), "h", barWidth, "V", height
+                            "M", self.x(d.key), ",", height,
+                            "V", self.y(d.value), "h", barWidth, "V", height
                         );
                     }
                     return path.join("");
@@ -127,37 +134,40 @@ Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
             }
         },
         render: function (options) {
+            var self = this;
+            d3.select(this.options.element).style("height", 500);
 
-            this.brush.on("brushstart.chart", function () {
+            self.brush.on("brushstart.chart", function () {
                 var div = d3.select(this.parentNode.parentNode.parentNode);
                 div.select(".title a").style("display", null);
             });
 
-            this.brush.on("brush.chart", function () {
+            self.brush.on("brush.chart", function () {
                 var g = d3.select(this.parentNode),
-                    extent = brush.extent();
-                if (round) g.select(".brush")
-                    .call(brush.extent(extent = extent.map(round)))
+                    extent = self.brush.extent();
+                if (self.round) g.select(".brush")
+                    .call(brush.extent(extent = extent.map(self.round)))
                     .selectAll(".resize")
                     .style("display", null);
-                g.select("#clip-" + id + " rect")
-                    .attr("x", x(extent[0]))
-                    .attr("width", x(extent[1]) - x(extent[0]));
-                dimension.filterRange(extent);
+                g.select("#clip-" + self.id + " rect")
+                    .attr("x", self.x(extent[0]))
+                    .attr("width", self.x(extent[1]) - self.x(extent[0]));
+                self.dimension.filterRange(extent);
             });
 
-            this.brush.on("brushend.chart", function() {
+            self.brush.on("brushend.chart", function() {
                 if (this.brush.empty()) {
                     var div = d3.select(this.parentNode.parentNode.parentNode);
                     div.select(".title a").style("display", "none");
-                    div.select("#clip-" + id + " rect")
+                    div.select("#clip-" + self.id + " rect")
                         .attr("x", null)
                         .attr("width", "100%");
-                    dimension.filterAll();
+                    self.dimension.filterAll();
                 }
             });
 
-            d3.rebind(this.chart, this.brush, "on");
+            d3.rebind(self.chart, self.brush, "on");
+            d3.select(self.options.element).call(self.chart);
         },
         filter: function (range) {
             if (range) {
