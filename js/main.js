@@ -1,6 +1,5 @@
 Iris(function () {
-    
-    // // var input = "http://brie.cshl.edu/~olson/refData.json";
+    // var input = "http://brie.cshl.edu/~olson/refData.json";
     var input = "./refData.json";
     var formatNumber = d3.format(",d");
     Iris.require(["underscore", "jquery", "js/brushchart"],
@@ -76,32 +75,14 @@ Iris(function () {
             }
             function render(method) { d3.select(this).call(method); }
 
-            $("#histograms").append($("<div>", {
-                class: "chart",
-                id: "chart1"
-            }).append($("<div>", { class: "title" }).text("Conservation")));
-            $("#histograms").append($("<div>", {
-                class: "chart",
-                id: "chart2"
-            }).append($("<div>", { class: "title" }).text("CHG")));
-            var wgaPair = dimGroupPair("WGA");
-            var chgPair = dimGroupPair("CHG");
-            histograms = [
-                new BrushChart({
-                    element: "#chart1",
-                    dimension: wgaPair.dim,
-                    group: wgaPair.group
-                }),
-                new BrushChart({
-                    element: "#chart2",
-                    dimension: chgPair.dim,
-                    group:     chgPair.group
-                })
-            ];
+            histograms = [];
+            histograms.push(makeBarChart("WGA", "Conservation"));
+            histograms.push(makeBarChart("CHG"));
             histograms[0].filter(null);
             renderCharts();
 
             window.filter = function (filters) {
+                console.log("Filter event", filters);
                 filters.forEach(function (d, i) { histograms[i].filter(d); });
                 renderCharts();
             };
@@ -110,6 +91,24 @@ Iris(function () {
                 histograms[i].filter(null);
                 renderCharts();
             };
+            
+            function makeBarChart(type, title) {
+                if (this.counter === undefined) {
+                    this.counter = 0;
+                }
+                this.counter++;
+                var id = "chart-" + this.counter;
+                title = (title || type);
+                $("#histograms").append($("<div>", {
+                    class: "chart", id: id
+                }).append($("<div>", { class: "title" }).text(title)));
+                var pair = dimGroupPair(type);
+                return new BrushChart({
+                    element: "#" + id,
+                    dimension: pair.dim,
+                    group: pair.group
+                });
+            }
         });
     });
 });

@@ -156,7 +156,7 @@ Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
             });
 
             self.brush.on("brushend.chart", function() {
-                if (this.brush.empty()) {
+                if (self.brush.empty()) {
                     var div = d3.select(this.parentNode.parentNode.parentNode);
                     div.select(".title a").style("display", "none");
                     div.select("#clip-" + self.id + " rect")
