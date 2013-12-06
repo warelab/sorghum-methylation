@@ -1,9 +1,9 @@
 Iris(function () {
     // var input = "http://brie.cshl.edu/~olson/refData.json";
-    var input = "./refData.json";
+    var input = "/data/methylation.json";
     var formatNumber = d3.format(",d");
     Iris.require(["underscore", "jquery", "js/brushchart"],
-    function (_, $, BrushChart) {
+    function (_, $, BrushChart, Table) {
         var BINS = 25;
         function log10(v) {
             return Math.log(v) / Math.log(10);
@@ -11,23 +11,25 @@ Iris(function () {
         function byBin(v) {
             return Math.floor(v * 0.99 * BINS) / BINS;
         }
-        function loadMethData(callback) {
+        function loadMethCF(callback) {
             $.getJSON(input, function (data) {
                 var meth = crossfilter(data);
-                callback(meth);
+                callback(meth, data);
             }).fail(function () {
                 // TODO: Something more useful.
                 console.log("Uhoh", arguments);
             });
         }
-        loadMethData(function (cf) {
-            var all   = cf.groupAll();
+        loadMethCF(function (MethCF, MethData) {
+            var all   = MethCF.groupAll();
+            var genes = MethCF.dimension(function (d) { return d.name; });
             var Dims = {
-                wga:  { key: "WGA" },
-                meth: { key: "CHG" }
+                wga: { key: "WGA" },
+                chg: { key: "CHG" },
+                // chh: { key: "CHH" }
             };
             function dimGroupPair(key) {
-                var dim = cf.dimension(function (d) { return d[key]; });
+                var dim = MethCF.dimension(function (d) { return d[key]; });
                 return {
                     dim: dim,
                     group: dim.group(byBin).reduceCount()
@@ -42,14 +44,14 @@ Iris(function () {
 
             var maxMeth = log10(Dims.wga.group.top(1)[0].value);
             var binLabels = _.pluck(Dims.wga.group.all(), "key");
-            $("#status #total").text(formatNumber(cf.size()));
+            $("#status #total").text(formatNumber(MethCF.size()));
 
             function binValues(type1, type2) {
                 var dim1 = Dims[type1].dim,
                     dim2 = Dims[type2].dim,
                     grp1 = Dims[type1].group,
                     grp2 = Dims[type2].group,
-                    filtered = cf.dimension(function (d) {
+                    filtered = MethCF.dimension(function (d) {
                         return d[Dims[type2].key];
                     }),
                     measures = filtered.group(byBin).reduceCount(),
@@ -70,7 +72,7 @@ Iris(function () {
         
             function renderCharts() {
                 _.each(histograms, function (h) { h.render(); });
-                var values = binValues("meth", "wga");
+                var values = binValues("chg", "wga");
                 $("#status #selected").text(formatNumber(all.value()));
             }
             function render(method) { d3.select(this).call(method); }
@@ -78,7 +80,26 @@ Iris(function () {
             histograms = [];
             histograms.push(makeBarChart("WGA", "Conservation"));
             histograms.push(makeBarChart("CHG"));
+            // histograms.push(makeBarChart("CHH"));
+            // histograms.push(makeBarChart("CpG5"));
+            // histograms.push(makeBarChart("CpG3"));
             histograms[0].filter(null);
+            var valueTableViewport = new Iris.Viewport({
+                parent: "#datavis",
+                title: "Values",
+                id:    "meth-values-viewport"
+            });
+            var table = new Iris.Renderer.Table({
+                element: valueTableViewport
+            });
+            table.setData({
+                columns: Object.keys(MethData[0]),
+                data: _.map(genes.top(100), function (gene) {
+                    return _.values(gene);
+                })
+            });
+            table.render();
+            
             renderCharts();
 
             window.filter = function (filters) {

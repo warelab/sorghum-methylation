@@ -1,5 +1,5 @@
-Iris.define(["d3", "underscore", "charts/bar"], function (d3, _, BarChart) {
-    var BrushChart = BarChart.extend({
+Iris.define(["d3", "underscore"], function (d3, _) {
+    var BrushChart = Iris.Renderer.BarChart.extend({
         defaults: {
             margin: { top: 10, right: 10, bottom: 20, left: 10 },
             yPixels: 80
